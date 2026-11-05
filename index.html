@@ -102,6 +102,13 @@ footer img{width:34px;height:34px;object-fit:contain}
 .steps{list-style:none;margin:6px 0 14px;padding:0;counter-reset:st}
 .steps li{counter-increment:st;position:relative;padding-inline-start:44px;margin:0 0 12px;min-height:32px}
 .steps li::before{content:counter(st);position:absolute;inset-inline-start:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--brand);color:var(--onbrand);display:grid;place-items:center;font-weight:800;font-size:15px}
+.extra{margin:0 0 14px}
+.extra h4{margin:4px 0 8px;font-size:16px;color:var(--brand)}
+.extra dl{margin:0;display:grid;gap:8px}
+.extra dt{font-weight:800;font-size:14px}
+.extra dd{margin:0 0 4px;color:var(--muted);font-size:14px}
+.extra ul{margin:0;padding-inline-start:20px;font-size:14px}
+.extra ul li{margin-bottom:6px}
 .sheet .note{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);margin-bottom:14px}
 @media (max-width:520px){.modal{align-items:flex-end;padding:0}.sheet{border-radius:18px 18px 0 0;max-height:88dvh}}
 </style>
@@ -157,6 +164,7 @@ footer img{width:34px;height:34px;object-fit:contain}
       <button class="x" id="mClose" type="button" aria-label="close">×</button>
     </div>
     <ol class="steps" id="mSteps"></ol>
+    <div class="extra" id="mExtra"></div>
     <div class="note" id="mNote"></div>
     <div class="actions" id="mActions"></div>
   </div>
@@ -456,7 +464,7 @@ const CATS_EN = {
 const UI = {
   ar:{title:"دليل منصات العمل الحر والشغل أونلاين", by:"إعداد", intro:n=>`${n} منصة مقسمة حسب نوع الشغل، ومع كل منصة اللينك وتوصيات. علّم على كل منصة بعد ما تسجل فيها عشان تتابع تقدمك.`,
       progress:(a,b)=>`سجلت في ${a} من ${b} منصة`, search:"ابحث باسم المنصة...", all:"الكل", empty:"مفيش منصة بالاسم ده.",
-      tipsTitle:"قبل ما تبدأ: نصايح مهمة", site:"الموقع", guide:"جايد", guideTitle:"إزاي تسجل في",
+      tipsTitle:"قبل ما تبدأ: نصايح مهمة", site:"الموقع", guide:"جايد", work:"طريقة العمل", guideTitle:"إزاي تسجل في",
       step1:(n,app)=> app ? `حمّل تطبيق ${n} من زرار الموقع` : `افتح موقع ${n} من زرار "الموقع" واضغط Sign up / إنشاء حساب`,
       stepLast:"كمّل بروفايلك بصورة واضحة ونبذة عن مهارتك، وفعّل الإيميل",
       note:"💡 سجل ببياناتك الحقيقية ومن غير VPN، وخطوات التسجيل ممكن تتغير شوية من وقت للتاني.", level:"المستوى", neu:"جديدة", done:"سجلت في المنصة دي",
@@ -470,7 +478,7 @@ const UI = {
         ["رتب طريقة السحب بدري","واعرف قبلها المنصة بتدفع بإيه ورسوم التحويل كام."]]},
   en:{title:"Guide to Freelance & Online Work Platforms", by:"Made by", intro:n=>`${n} platforms grouped by type of work, each with its link and recommendations. Tick each platform after you sign up to track your progress.`,
       progress:(a,b)=>`Signed up on ${a} of ${b} platforms`, search:"Search by platform name...", all:"All", empty:"No platform with that name.",
-      tipsTitle:"Before you start: key tips", site:"Website", guide:"Guide", guideTitle:"How to sign up on",
+      tipsTitle:"Before you start: key tips", site:"Website", guide:"Guide", work:"How it works", guideTitle:"How to sign up on",
       step1:(n,app)=> app ? `Download the ${n} app from the Website button` : `Open ${n} from the "Website" button and click Sign up`,
       stepLast:"Complete your profile with a clear photo and a bio about your skill, and verify your email",
       note:"💡 Sign up with your real details and no VPN. Signup steps may change slightly over time.", level:"Level", neu:"New", done:"I signed up here",
@@ -726,11 +734,13 @@ function card(s){
       <div class="actions">
         <a class="btn primary" href="${s.u}" target="_blank" rel="noopener">🌐 ${u.site}</a>
         ${guide}
+        ${WORK[s.d] ? `<button class="btn ghost" type="button" data-work>🛠️ ${u.work}</button>` : ""}
       </div>
       <label class="check"><input type="checkbox" ${done[id]?"checked":""}> ${u.done}</label>
     </div>`;
   el.querySelector(".logo img").onerror = function(){ this.parentNode.innerHTML = `<b>${esc(name[0])}</b>`; };
   el.querySelector("[data-guide]").onclick = ()=>openGuide(s);
+  if (WORK[s.d]) el.querySelector("[data-work]").onclick = ()=>openWork(s);
   el.querySelector("input").onchange = e=>{
     if (e.target.checked) done[id]=true; else delete done[id];
     el.classList.toggle("done", e.target.checked);
@@ -780,13 +790,85 @@ function applyLang(){
   document.getElementById("tips").innerHTML = u.tips.map(([b,t])=>`<li><b>${esc(b)}</b> ${esc(t)}</li>`).join("");
   document.getElementById("langBtn").textContent = "🌐 " + u.lang;
   updateThemeBtn(); buildTabs(); render(); updateBar();
-  if (openSite) openGuide(openSite);
+  if (openSite) (openMode==="work" ? openWork : openGuide)(openSite);
 }
 
 const modal = document.getElementById("modal");
-let lastFocus = null, openSite = null;
+// طريقة العمل — زرار تالت لمنصات معينة
+const WORK = {
+  "outlier.ai":{
+    links:[{u:"https://outlier.ai/languages/ar-eg", ar:"التسجيل في Outlier (عربي)", en:"Sign up on Outlier (Arabic)", p:1},
+           {u:"https://app.airtm.com/ivt/mohamed1nzslu6i", ar:"التسجيل على Airtm", en:"Sign up on Airtm"}],
+    ar:{title:"طريقة العمل على", steps:[
+      "سجّل من لينك Outlier العربي (تحت) واختار اللغة العربية (مصر) ضمن لغاتك",
+      "اعمل حساب على Airtm من دلوقتي، ده اللي هتستلم عليه فلوسك من Outlier",
+      "كمّل البروفايل وتحقق الهوية (ID) بنفس الاسم اللي في حساب Airtm",
+      "قبل أي اختبار: اقرا الـ Guidelines والكورسات اللي جوه المنصة كاملة، واسمع الأمثلة الصوتية",
+      "حل اختبارات التأهيل (Screeners) بنفسك وعلى مهلك، الوقت كافي",
+      "بعد القبول المهام بتظهر في الداشبورد؛ ابدأ بعدد قليل وركّز على الجودة"],
+      h1:"معايير التقييم في مشاريع الصوت (S2S)", terms:[
+      ["Audio Quality","نضافة الصوت: تقطيع، Pops، Ticks، صفير (Sibilance). اذكر رقم الدور والتوقيت لكل مشكلة"],
+      ["Naturalness / Engagement","الصوت طبيعي ودافي ولا آلي ومتكرر"],
+      ["Conversational Dynamics","تبادل الأدوار: هل الموديل بيقاطع المستخدم ولا بيستناه يخلّص"],
+      ["Utility","فايدة المحتوى نفسه: إجابة كاملة ومعلومات صح"],
+      ["Task Success","Pass / Partial / Fail حسب تنفيذ المطلوب (مثلًا الرد بلغة غلط بيأثر هنا)"],
+      ["Error Clusters","أخطاء متكررة زي Wrong Language أو Bridging (افتتاحية مكررة في كل دور)"]],
+      h2:"إزاي تكتب Justification مقبول", rules:[
+      "ابدأ بالـ Overall Preference واذكر المعيار اللي حسم الاختيار",
+      "الكلام لازم يطابق التقييمات اللي اخترتها بالظبط، أي تناقض = رفض",
+      "استشهد بدليل: رقم الدور (T2) والتوقيت (0:08) واقتبس الجملة لو فيه تكرار",
+      "لو المشكلة اتكررت أكتر من 3 مرات اذكر عددها التقريبي و3 أمثلة على الأقل",
+      "ممنوع رأي شخصي زي \"عجبني\"؛ كل جملة لازم تتأكد من التسجيل",
+      "اشرح أي Error Cluster انت معلّم عليه"],
+      note:"⚠️ اختبارات التأهيل لازم تتحل بمجهودك. استخدام إجابات جاهزة بيخالف شروط Outlier وممكن يقفل الحساب نهائيًا، وكمان مش هتعرف تكمل المهام المدفوعة من غير ما تفهم المعايير."},
+    en:{title:"How it works on", steps:[
+      "Sign up with the Arabic Outlier link below and add Arabic (Egypt) to your languages",
+      "Create an Airtm account now; that's where you'll receive your Outlier payouts",
+      "Complete your profile and ID verification with the same name as your Airtm account",
+      "Before any test: read the in-platform guidelines and courses fully, and listen to the audio examples",
+      "Take the qualification screeners yourself and don't rush, the time is enough",
+      "Once accepted, tasks appear in the dashboard; start small and focus on quality"],
+      h1:"Rating dimensions in audio (S2S) projects", terms:[
+      ["Audio Quality","Clean audio: cuts, pops, ticks, sibilance. Note the turn and timestamp for each issue"],
+      ["Naturalness / Engagement","Does the voice sound natural and warm, or robotic and repetitive"],
+      ["Conversational Dynamics","Turn-taking: does the model interrupt the user or wait for them to finish"],
+      ["Utility","Usefulness of the content: complete, correct information"],
+      ["Task Success","Pass / Partial / Fail based on doing what was asked (e.g. wrong language hurts this)"],
+      ["Error Clusters","Repeated errors such as Wrong Language or Bridging (same opener every turn)"]],
+      h2:"Writing an acceptable justification", rules:[
+      "Open with the Overall Preference and the dimension that decided it",
+      "The text must match your submitted ratings exactly; any contradiction gets rejected",
+      "Cite evidence: turn number (T2), timestamp (0:08), and quote repeated phrases",
+      "If an issue happens more than 3 times, give an estimated count and at least 3 examples",
+      "No personal opinions like \"I liked it\"; every sentence must be checkable in the recording",
+      "Explain every Error Cluster you flag"],
+      note:"⚠️ Do the qualification tests yourself. Using ready-made answers breaks Outlier's terms and can get the account permanently banned, and you won't manage paid tasks without understanding the criteria."}
+  }
+};
+function openWork(s){
+  const w = WORK[s.d]; if (!w) return;
+  openSite = s; openMode = "work"; lastFocus = document.activeElement;
+  const c = w[lang], name = siteName(s);
+  document.getElementById("mTitle").innerHTML = `<small>${esc(c.title)}</small>${esc(name)}`;
+  const lg = document.getElementById("mLogo");
+  lg.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${s.d}&sz=128" alt="">`;
+  lg.querySelector("img").onerror = function(){ lg.innerHTML = `<b>${esc(name[0])}</b>`; };
+  document.getElementById("mSteps").innerHTML = c.steps.map(x=>`<li>${esc(x)}</li>`).join("");
+  document.getElementById("mExtra").innerHTML =
+    `<h4>${esc(c.h1)}</h4><dl>${c.terms.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join("")}</dl>` +
+    `<h4 style="margin-top:14px">${esc(c.h2)}</h4><ul>${c.rules.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  document.getElementById("mNote").textContent = c.note;
+  document.getElementById("mActions").innerHTML = w.links.map(l=>
+    `<a class="btn ${l.p?"primary":"ghost"}" href="${l.u}" target="_blank" rel="noopener">🔗 ${esc(l[lang])}</a>`).join("");
+  modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+  document.getElementById("mClose").focus();
+}
+
+let lastFocus = null, openSite = null, openMode = "guide";
 function openGuide(s){
-  openSite = s; lastFocus = document.activeElement;
+  openSite = s; openMode = "guide"; lastFocus = document.activeElement;
+  document.getElementById("mExtra").innerHTML = "";
   const u = L(), g = GUIDE[s.d] || {ar:[],en:[]}, name = siteName(s);
   const isApp = s.u.includes("apps.apple.com");
   let steps = g[lang] || [];
