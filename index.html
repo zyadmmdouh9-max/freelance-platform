@@ -140,6 +140,12 @@ footer img{width:34px;height:34px;object-fit:contain}
 .svc-card summary{cursor:pointer;font-weight:700;color:var(--brand)}
 .svc-card details ul{margin:4px 0 6px;padding-inline-start:18px}
 .svc-card .btn{cursor:pointer;font:inherit;font-weight:700;font-size:14px}
+#modal{z-index:60}
+.svc-rw{align-self:flex-start;border:1px dashed var(--brand);background:transparent;color:var(--brand);border-radius:99px;padding:3px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.svc-rw span{opacity:.7;font-weight:600}
+.svc-guide-btn{margin-top:8px;width:100%;cursor:pointer;font:inherit;font-weight:800;font-size:15px}
+.svc-prev{width:100%;height:auto;border-radius:12px;display:block;border:1px solid var(--line)}
+.svc-sheet .svc-card .actions .btn{flex:1 1 80px;padding:9px 6px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:80;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:520px){.svc-sheet{max-height:94dvh}.svc-tools{top:60px}}
@@ -215,6 +221,7 @@ footer img{width:34px;height:34px;object-fit:contain}
       <ol id="svcRules"></ol>
       <p id="svcTip"></p>
       <div class="svc-plat" id="svcPlat"></div>
+      <button class="btn primary svc-guide-btn" id="svcGuideBtn" type="button"></button>
     </details>
     <label class="svc-name"><span id="svcNameL"></span><input class="search" id="svcName" type="text" autocomplete="name"></label>
     <div class="svc-tools">
@@ -955,7 +962,7 @@ function openGuide(s){
 }
 function closeGuide(){
   modal.classList.remove("open"); openSite = null;
-  document.body.style.overflow = "";
+  if (!document.getElementById("svcModal").classList.contains("open")) document.body.style.overflow = "";
   if (lastFocus) lastFocus.focus();
 }
 document.getElementById("mClose").onclick = closeGuide;
@@ -1396,11 +1403,123 @@ const SERVICES = [
    r:"بيانات وصور المنتجات والوصول للوحة التحكم.",k:"رفع منتجات، متجر إلكتروني، سلة، شوبيفاي، ووكومرس"}
 ];
 
+// عناوين بديلة لكل خدمة (نفس الترتيب ونفس حجم الشغل) — عشان الطلبة مايكتبوش نفس العنوان بالحرف
+const SVC_ALT = [
+  // كتابة وترجمة
+  ["مقال حصري 500 كلمة مكتوب يدويًا ومهيأ لمحركات البحث","سأكتب لك مقالًا من 500 كلمة متوافقًا مع السيو وخاليًا من النسخ","كتابة مقال تدويني 500 كلمة بعناوين منظمة وكلمة مفتاحية"],
+  ["مراجعة وتصحيح الأخطاء الإملائية والنحوية في 1500 كلمة","سأدقق نصك العربي لغويًا حتى 1500 كلمة مع ضبط الترقيم","تصحيح لغوي احترافي لنص عربي يصل إلى 1500 كلمة"],
+  ["ترجمة 500 كلمة من الإنجليزية للعربية بدقة وبدون ترجمة آلية","سأترجم لك 500 كلمة من الإنجليزية إلى العربية بأسلوب سلس","ترجمة احترافية لنص إنجليزي حتى 500 كلمة إلى لغة عربية سليمة"],
+  ["ترجمة 400 كلمة من العربية إلى إنجليزية سليمة وواضحة","سأترجم نصك العربي إلى الإنجليزية حتى 400 كلمة بدقة","ترجمة احترافية من العربي للإنجليزي حتى 400 كلمة"],
+  ["وصف مقنع لـ 5 منتجات يزيد مبيعات متجرك","سأكتب وصفًا تسويقيًا لخمسة منتجات في متجرك الإلكتروني","كتابة أوصاف بيعية لـ 5 منتجات لمتجر سلة أو زد أو شوبيفاي"],
+  ["سيرة ذاتية إنجليزية احترافية صفحة واحدة تجتاز أنظمة ATS","سأعيد كتابة وتنسيق سيرتك الذاتية بالإنجليزية بشكل احترافي","تصميم وكتابة CV بالإنجليزية متوافق مع أنظمة فرز السير الذاتية"],
+  ["خطاب تقديم مخصص يربط خبرتك بمتطلبات الوظيفة","سأكتب لك Cover Letter احترافيًا لوظيفة تتقدم لها","رسالة تقديم وظيفية مكتوبة خصيصًا لإعلان الوظيفة"],
+  ["تحويل تسجيل عربي حتى 15 دقيقة إلى نص مكتوب بدقة","سأفرغ لك مقطعًا صوتيًا أو فيديو عربيًا حتى 15 دقيقة","تفريغ نصي لمحاضرة أو مقابلة عربية مدتها حتى 15 دقيقة"],
+  ["صفحة «من نحن» تحكي قصة نشاطك وتبني ثقة العميل","سأكتب محتوى صفحة من نحن لموقعك أو متجرك الإلكتروني","كتابة نبذة تعريفية احترافية لصفحة About Us"],
+  ["إعادة صياغة نصك حتى 800 كلمة بأسلوب أوضح وأقوى","سأحسن أسلوب نصك وأعيد صياغته حتى 800 كلمة","تحرير وتحسين نص تملكه يصل إلى 800 كلمة"],
+  ["سكريبت ريلز أو تيك توك لمدة دقيقة بخطاف قوي","سأكتب لك سكريبت فيديو قصير مدته 60 ثانية","كتابة نص فيديو قصير لدقيقة واحدة جاهز للتصوير"],
+  ["سلسلة 3 رسائل بريدية تسويقية تقود العميل للشراء","سأكتب لك 3 إيميلات تسويقية بعناوين جذابة","كتابة 3 رسائل Email Marketing لحملتك القادمة"],
+  ["ملخص تنفيذي في صفحة واحدة لمستند حتى 20 صفحة","سألخص لك تقريرًا أو مستندًا طويلًا حتى 20 صفحة","تلخيص مستند حتى 20 صفحة في أهم النقاط والأرقام"],
+  // تصميم
+  ["شعار نصي عصري لاسم نشاطك بنموذجين مبدئيين","سأصمم لك شعارًا نصيًا أنيقًا بخلفية شفافة","تصميم لوجو تايبوجرافي بسيط واحترافي لمشروعك"],
+  ["3 منشورات سوشيال ميديا بتصميم موحد لصفحتك","سأصمم لك 3 بوستات احترافية لفيسبوك أو إنستجرام","تصميم 3 بوستات بهوية بصرية واحدة لحسابك"],
+  ["غلاف فيسبوك وغلاف لينكدإن بمقاسات صحيحة","سأصمم لك كفر احترافي لصفحة فيسبوك وحساب لينكدإن","تصميم غلافين (فيسبوك + لينكدإن) بهوية نشاطك"],
+  ["بطاقة عمل بوجهين بملف جاهز للمطبعة","سأصمم لك بزنس كارد أنيق أمامي وخلفي","تصميم كارت شخصي احترافي وجهين PDF للطباعة"],
+  ["صورة مصغرة لفيديو يوتيوب تزيد نسبة النقر","سأصمم لك Thumbnail جذابة بمقاس 1280×720","تصميم ثمبنيل احترافي واحد لفيديو يوتيوب"],
+  ["تفريغ 10 صور منتجات ووضعها على خلفية بيضاء","سأزيل خلفية 10 صور لمنتجاتك بدقة عالية","قص وعزل 10 صور منتجات بخلفية بيضاء أو شفافة"],
+  ["منيو صفحة واحدة لمطعمك أو الكافيه بملف للطباعة","سأصمم لك قائمة طعام صفحة واحدة بالأسعار","تصميم قائمة طعام أنيقة لمطعم أو كافيه"],
+  ["فلاير A5 جذاب لعرضك أو فعاليتك","سأصمم لك فلاير إعلاني وجه واحد للطباعة والنشر","تصميم مطبوعة إعلانية A5 بملف PDF وصورة"],
+  ["شهادة A4 لكورساتك يمكنك تعديل الأسماء عليها","سأصمم لك شهادة حضور أو تقدير قابلة للتعديل","تصميم قالب شهادة رسمية لدورة أو فعالية"],
+  ["إنفوجرافيك واحد يحول معلوماتك إلى رسم واضح","سأصمم لك إنفوجرافيك بأيقونات يبسط محتواك","تحويل معلومات أو خطوات إلى تصميم إنفوجرافيك"],
+  ["بطاقة دعوة إلكترونية لمناسبتك جاهزة لواتساب","سأصمم لك دعوة إلكترونية لافتتاح أو حفل أو خطوبة","تصميم كارت دعوة رقمي أنيق لمناسبة خاصة"],
+  ["5 أيقونات هايلايت موحدة لحسابك على إنستجرام","سأصمم لك 5 أغلفة Highlights بألوان هويتك","تصميم خمسة أغلفة ستوري مميزة لإنستجرام"],
+  ["شاشة UI واحدة لتطبيقك أو موقعك على Figma","سأصمم لك واجهة شاشة واحدة بتصميم عصري على فيجما","تصميم واجهة مستخدم لشاشة واحدة جاهزة للمبرمج"],
+  ["إصلاح صورة قديمة من الخدوش والبهتان","سأرمم صورتك القديمة وأحسن ألوانها ووضوحها","استعادة جودة صورة تالفة أو باهتة باحترافية"],
+  ["عرض PowerPoint من 10 شرائح بتصميم موحد","سأصمم لك عرضًا تقديميًا احترافيًا حتى 10 شرائح","تنسيق وتصميم 10 شرائح باوربوينت لمحتواك"],
+  // فيديو وصوت
+  ["فيديو ريلز أو تيك توك حتى دقيقة بقص احترافي ونصوص","سأمنتج لك فيديو قصيرًا رأسيًا حتى 60 ثانية","مونتاج مقطع رأسي حتى دقيقة جاهز للنشر"],
+  ["ترجمة مضبوطة التوقيت لفيديو حتى 10 دقائق","سأضيف ترجمة عربية أو إنجليزية لفيديو مدته 10 دقائق","عمل ملف SRT وترجمة لفيديو حتى 10 دقائق"],
+  ["لوجو متحرك من 5 إلى 10 ثوانٍ لبداية فيديوهاتك","سأحرك شعارك في مقدمة قصيرة احترافية","تصميم انترو لشعارك بمؤثر صوتي مناسب"],
+  ["إزالة الضوضاء والصدى من تسجيل حتى 20 دقيقة","سأحسن جودة تسجيلك الصوتي حتى 20 دقيقة","تنقية صوت بودكاست أو درس حتى 20 دقيقة"],
+  ["فويس أوفر عربي حتى 100 كلمة بصوت واضح","سأسجل لك تعليقًا صوتيًا عربيًا حتى 100 كلمة","تسجيل صوتي بشري لإعلان أو شرح حتى 100 كلمة"],
+  ["فيديو سلايد شو حتى 20 صورة بموسيقى وانتقالات","سأحول صورك إلى فيديو جميل بالموسيقى والنصوص","عمل فيديو من صورك لمناسبة أو لعرض منتجاتك"],
+  ["مونتاج فيديو يوتيوب حتى 10 دقائق وقص الأخطاء","سأمنتج لك فيديو يوتيوب حتى 10 دقائق بإيقاع مريح","تحرير فيديو يوتيوب وتنظيفه وضبط الصوت والألوان"],
+  ["فيديو نصي متحرك 30 ثانية لإعلانك","سأصمم لك فيديو Kinetic Typography مدته 30 ثانية","موشن جرافيك نصي قصير لعرضك أو رسالتك"],
+  ["بانر GIF متحرك خفيف الحجم لموقعك","سأصمم لك إعلانًا متحركًا بصيغة GIF","تصميم بانر متحرك واحد لعرض أو منتج"],
+  ["فيديو شرح خطوات موقعك أو برنامجك حتى 5 دقائق","سأسجل لك شرح شاشة بتعليق صوتي حتى 5 دقائق","عمل فيديو تعليمي Screen Recording لطريقة الاستخدام"],
+  ["5 مقاطع قصيرة من البودكاست أو اللايف الخاص بك","سأقص فيديوك الطويل إلى 5 ريلز جاهزة للنشر","استخراج 5 شورتس رأسية بنصوص من فيديو طويل"],
+  // برمجة ومواقع
+  ["صفحة هبوط واحدة سريعة ومتجاوبة لمنتجك","سأبرمج لك Landing Page بـ HTML و CSS","برمجة صفحة هبوط بسيطة تعمل على الموبايل والكمبيوتر"],
+  ["حل مشكلة واحدة في كود صفحتك مع شرح السبب","سأصلح خطأ واحدًا في HTML أو CSS أو JavaScript","إصلاح زر لا يعمل أو تنسيق مكسور في موقعك"],
+  ["بورتفوليو صفحة واحدة منشور على رابط مجاني","سأبني لك موقعًا شخصيًا وأنشره على GitHub Pages","موقع شخصي بسيط لعرض مهاراتك وأعمالك"],
+  ["سكريبت Python ينفذ مهمة روتينية بدلًا منك","سأكتب لك سكريبت بايثون لتنظيم الملفات أو إعادة تسميتها","أتمتة مهمة متكررة على جهازك بلغة بايثون"],
+  ["فورم تواصل يرسل الرسائل مباشرة لبريدك","سأضيف لموقعك نموذج تواصل يعمل بدون سيرفر","برمجة Contact Form منسق لموقعك"],
+  ["مخطط ERD وأكواد SQL لقاعدة بيانات مشروعك","سأصمم لك قاعدة بيانات بسيطة بالجداول والعلاقات","تصميم Database لمشروع صغير مع بيانات تجريبية"],
+  ["تحسين كود بايثون حتى 150 سطر مع تعليقات","سأراجع كود Python الخاص بك وأحسن قراءته","مراجعة وتنظيم كود بايثون وإضافة شرح داخله"],
+  ["بوت تليجرام يرد على 5 أوامر محددة","سأبرمج لك بوت تليجرام للرد التلقائي","برمجة Telegram Bot بسيط لخدمة العملاء"],
+  ["تركيب وتخصيص قالب ووردبريس لموقعك","سأجهز لك قالب WordPress بألوانك وشعارك","إعداد قالب ووردبريس مجاني وتفعيل الإضافات الأساسية"],
+  ["زر واتساب ثابت وأيقونات سوشيال لموقعك","سأضيف لموقعك زر واتساب عائم برسالة جاهزة","تركيب زر تواصل واتساب وأيقونات حساباتك"],
+  ["ملف README منظم يجعل مستودعك احترافيًا","سأكتب لك README بالإنجليزية لمشروعك على GitHub","توثيق مشروع GitHub بملف README مع أقسام واضحة"],
+  ["أتمتة إرسال إيميلات مخصصة من جوجل شيت","سأبرمج لك Apps Script يرسل رسائل لكل صف","سكريبت جوجل شيت لإرسال تذكيرات بالبريد تلقائيًا"],
+  // إكسل وبيانات
+  ["تنظيف ملف إكسل حتى 2000 صف وتوحيد تنسيقه","سأرتب بياناتك في Excel وأزيل التكرار والأخطاء","تجهيز بيانات إكسل للتحليل بإزالة التكرار"],
+  ["داشبورد إكسل تفاعلي بمؤشرات وفلاتر","سأحول بياناتك إلى لوحة تحكم في Excel","تصميم Excel Dashboard صفحة واحدة يتحدث تلقائيًا"],
+  ["3 جداول محورية برسوم بيانية تلخص بياناتك","سأعمل لك Pivot Tables ورسومًا في إكسل","تلخيص بيانات كبيرة بجداول محورية ورسوم"],
+  ["شيت ميزانية شهرية يحسب الرصيد تلقائيًا","سأصمم لك شيت مصروفات وإيرادات بمعادلات","شيت حسابات شخصي أو لمشروع صغير مع رسم بياني"],
+  ["تقرير Power BI تفاعلي صفحة واحدة","سأبني لك داشبورد Power BI لمؤشراتك","تصميم لوحة Power BI بمؤشرات وفلاتر"],
+  ["تقرير نتائج استبيانك برسوم ونسب","سأحلل إجابات استبيانك وأكتب أهم النتائج","تحويل ردود استبيان إلى رسوم بيانية وتقرير"],
+  ["حل أخطاء معادلات إكسل حتى 5 معادلات","سأكتب لك معادلات XLOOKUP و IF و SUMIFS","إصلاح أو كتابة معادلات Excel مع شرح بسيط"],
+  ["شيت مخزون يلون الأصناف القريبة من النفاد","سأصمم لك شيت وارد ومنصرف ورصيد للمخزن","إدارة مخزون في إكسل مع تنبيه نقص الكمية"],
+  ["أهم 5 مؤشرات من بيانات مبيعاتك مع توصيات","سأحلل مبيعات متجرك وأستخرج أفضل المنتجات والأيام","تقرير تحليل مبيعات مختصر برسوم بيانية"],
+  ["شيت حضور وانصراف يحسب المرتبات تلقائيًا","سأصمم لك شيت حضور وغياب ومرتبات للموظفين","حساب الخصومات والإضافي للموظفين في إكسل"],
+  ["نموذج Google Forms منظم مربوط بشيت","سأصمم لك فورم لجمع التسجيلات أو الطلبات","استمارة إلكترونية تحفظ الردود في Google Sheets"],
+  ["Jupyter Notebook بتحليل بياناتك ورسومها","سأحلل بياناتك ببايثون و Pandas مع رسوم","تحليل ملف CSV بلغة Python وتلخيص النتائج"],
+  ["5 استعلامات SQL لتقاريرك مع الشرح","سأكتب لك استعلامات SQL لاستخراج التقارير","استخراج تقارير من قاعدة بياناتك باستعلامات SQL"],
+  // ذكاء اصطناعي
+  ["20 أمر ChatGPT جاهز لمهامك اليومية","سأكتب لك 20 برومبت مجرب لمجال عملك","مكتبة برومبتات احترافية من 20 أمرًا لعملك"],
+  ["5 صور مولدة بالذكاء الاصطناعي لمنشوراتك","سأصمم لك 5 صور AI مميزة لمحتواك","توليد 5 صور بالذكاء الاصطناعي بالمقاسات المطلوبة"],
+  ["مساعد ChatGPT مخصص يعرف نشاطك","سأبني لك Custom GPT بتعليماتك وملفاتك","إعداد GPT خاص بنشاطك يجيب بأسلوبك"],
+  ["ربط تطبيقين بسير عمل آلي على n8n أو Make","سأؤتمت لك مهمة بين تطبيقين بدون برمجة","إعداد Workflow أتمتة واحد يعمل تلقائيًا"],
+  ["شات بوت يجيب زوار موقعك على 15 سؤالًا","سأنشئ لك شات بوت للأسئلة الشائعة بدون كود","تركيب Chatbot لخدمة العملاء على موقعك"],
+  ["فيديو بشخصية افتراضية تتحدث حتى 60 ثانية","سأحول نصك إلى فيديو أفاتار بالذكاء الاصطناعي","عمل فيديو AI Avatar للشرح أو الإعلان"],
+  ["تعليق صوتي AI بالعربية والإنجليزية لنصك","سأحول نصك إلى صوت طبيعي بالذكاء الاصطناعي","ملفين صوت AI عربي وإنجليزي حتى 300 كلمة"],
+  ["خطة 30 منشورًا لشهر كامل مع النصوص","سأجهز لك خطة محتوى شهرية لصفحتك","جدول محتوى 30 يومًا بأفكار ونصوص مقترحة"],
+  ["30 سؤال اختيار من متعدد من مادتك التدريبية","سأحول كتيبك التدريبي إلى بنك أسئلة بالإجابات","إعداد اختبار MCQ من محتوى دورتك"],
+  ["5 صور بروفايل احترافية من صورك العادية","سأعمل لك Headshots بالذكاء الاصطناعي للينكدإن","صور شخصية رسمية بالذكاء الاصطناعي لسيرتك الذاتية"],
+  ["30 دقيقة أونلاين أرشح وأجهز معك أدوات AI","سأساعدك في اختيار وإعداد أدوات الذكاء الاصطناعي لعملك","جلسة استشارية قصيرة لتسريع شغلك بالذكاء الاصطناعي"],
+  ["توسيم 300 صورة أو نص حسب فئاتك","سأصنف بياناتك لتدريب نماذج الذكاء الاصطناعي","Data Annotation لـ 300 عنصر مع مراجعة الجودة"],
+  ["تصنيف 200 تعليق لعملائك إلى إيجابي وسلبي ومحايد","سأحلل آراء عملائك وأستخرج نقاط القوة والضعف","تحليل مشاعر مراجعات العملاء برسم بياني"],
+  // تسويق
+  ["صفحة فيسبوك جاهزة لاستقبال عملاء نشاطك","سأنشئ لك صفحة فيسبوك مكتملة البيانات","إعداد صفحة فيسبوك لنشاطك بالنبذة وزر التواصل"],
+  ["10 بوستات مكتوبة بهاشتاجات جاهزة للنشر","سأكتب لك 10 منشورات متنوعة لصفحتك","محتوى نصي لـ 10 منشورات سوشيال ميديا"],
+  ["20 كلمة مفتاحية بحجم البحث والصعوبة","سأبحث لك عن أفضل كلمات مفتاحية لمجالك","Keyword Research لـ 20 كلمة في ملف Excel"],
+  ["ظهور نشاطك على خرائط جوجل بملف مكتمل","سأجهز لك Google Business Profile لنشاطك","إعداد ملف نشاطك على جوجل بالصور والمواعيد"],
+  ["عنوان ونبذة لينكدإن تظهرك لمسؤولي التوظيف","سأحسن بروفايلك على LinkedIn بالكلمات المفتاحية","إعادة كتابة Headline و About وخبرتين على لينكدإن"],
+  ["مقارنة 3 منافسين على السوشيال بـ 5 توصيات","سأحلل لك حسابات 3 منافسين في تقرير مختصر","دراسة محتوى وتفاعل 3 منافسين لنشاطك"],
+  ["حملة ممولة واحدة على Meta بالاستهداف المناسب","سأجهز لك إعلانًا ممولًا على فيسبوك وإنستجرام","إعداد حملة Meta Ads جاهزة للتشغيل بميزانيتك"],
+  ["5 نصوص إعلانية بزوايا مختلفة لمنتجك","سأكتب لك 5 نسخ Ad Copy لتختبرها","كتابة 5 إعلانات قصيرة مقنعة لعرضك"],
+  ["Title و Meta Description لـ 5 صفحات من موقعك","سأحسن السيو الداخلي لخمس صفحات في موقعك","تحسين عناوين ووصف ميتا لـ 5 صفحات"],
+  ["كتالوج 15 منتجًا على واتساب بيزنس مع ردود سريعة","سأجهز لك حساب WhatsApp Business بكتالوج منتجات","إعداد واتساب بيزنس برسائل ترحيب وكتالوج"],
+  ["صفحة روابط واحدة تجمع حتى 10 روابط","سأصمم لك صفحة Link in Bio بهويتك","رابط بايو واحد لكل حساباتك ومتجرك"],
+  ["قائمة بريدية ورسالة ترحيب تلقائية على Mailchimp","سأنشئ لك نموذج اشتراك وقائمة بريدية","إعداد Mailchimp لجمع إيميلات عملائك"],
+  // أعمال ومساعدة
+  ["كتابة 200 صف من صورك أو أوراقك في إكسل","سأدخل بياناتك من الصور إلى Excel بدقة","Data Entry حتى 200 صف مع مراجعة الدقة"],
+  ["تحويل PDF حتى 15 صفحة إلى Word بنفس التنسيق","سأحول ملف PDF إلى مستند Word قابل للتعديل","ملف Word قابل للتعديل من PDF مع الجداول"],
+  ["تنسيق 30 صفحة Word بفهرس وترقيم تلقائي","سأنسق مستندك في وورد بشكل احترافي","تنظيم مستند Word بأنماط موحدة وفهرس تلقائي"],
+  ["قائمة 50 جهة اتصال لمجالك في ملف Excel","سأجمع لك بيانات 50 شركة من الإنترنت","Lead List من 50 شركة بالبيانات العامة"],
+  ["لوحة Trello أو Notion منظمة لمهامك","سأنظم مشروعك على لوحة مهام بالمراحل والمواعيد","إعداد مساحة عمل Notion أو Trello لفريقك"],
+  ["قالب فاتورة وعرض سعر بشعارك وحساب تلقائي","سأصمم لك قالب Invoice وعرض سعر احترافي","قالب فواتير وعروض أسعار جاهز للإرسال"],
+  ["نموذج Business Model Canvas لفكرة مشروعك","سأرتب فكرة مشروعك في نموذج العمل التجاري","إعداد لوحة نموذج العمل بأقسامها التسعة"],
+  ["10 فلاتر وتصنيفات و5 ردود جاهزة في Gmail","سأنظم بريدك على Gmail لتوفير وقتك","ترتيب صندوق الوارد بفلاتر وتصنيفات تلقائية"],
+  ["صفحة حجز مواعيد مع تذكير تلقائي للعميل","سأجهز لك نظام حجز على Calendly أو Google Calendar","إعداد رابط حجز مواعيد أونلاين لعملائك"],
+  ["ساعتان رد على رسائل عملائك حسب تعليماتك","سأعمل كمساعد افتراضي للرد على استفساراتك","خدمة عملاء عن بعد لمدة ساعتين مع ملخص الطلبات"],
+  ["رفع 15 منتجًا بالصور والأسعار والتصنيفات","سأرفع منتجاتك على متجر سلة أو زد أو شوبيفاي","إضافة 15 منتجًا لمتجرك الإلكتروني بشكل منظم"]
+];
+
 // ===== لوحة الخدمات =====
 const SVC_UI = {
   ar:{btn:"💡 خدمات", title:"خدمات جاهزة تنشرها", sub:"اختار الخدمة، انسخها أو نزّلها Word، وانشرها", rulesT:"✅ شروط القبول عند الجودة",
       rules:["المنصات المقبولة: خمسات – كفيل – نفذلي (مستقل مش مقبولة)","سعر بداية الخدمة بين 3$ و 7$ (كل الخدمات هنا بـ 5$)","اسم الحساب على المنصة = اسمك المسجل في المنحة","الخدمة منشورة ونشطة واللينك عام بيفتح لأي حد","كل خدمة بفكرة مختلفة (مفيش خدمات مكررة)"],
-      tip:"💡 اختار خدمات انت فعلًا تعرف تنفذها، وغيّر الصياغة شوية بأسلوبك، وضيف صور معرض من شغلك؛ النص المنسوخ زي ما هو ممكن يترفض في المراجعة.",
+      tip:"💡 اختار خدمات انت فعلًا تعرف تنفذها، ودوس «🔄 صياغة تانية» عشان عنوانك مايبقاش زي زمايلك، وغيّر الوصف شوية بأسلوبك؛ النص المنسوخ زي ما هو ممكن يترفض في المراجعة.",
       open:"افتح", nameL:"اسمك المسجل في المنحة (اختياري، بيتكتب في ملف الورد للتذكير):", nameP:"مثال: محمد أحمد علي",
       search:"ابحث عن خدمة (تصميم، إكسل، ترجمة...)", all:"الكل", count:(a,b)=>`اخترت ${a} خدمة · ظاهر ${b}`,
       dlSel:"⬇️ تحميل المختار Word", dlAll:"⬇️ تحميل الكل Word", clear:"إلغاء الاختيار", copy:"📋 نسخ", word:"⬇️ Word",
@@ -1408,7 +1527,7 @@ const SVC_UI = {
       empty:"مفيش خدمة بالكلمة دي.", day:d=>d===1?"يوم":d===2?"يومين":`${d} أيام`, saved:"اتحمل الملف ✓"},
   en:{btn:"💡 Services", title:"Ready-to-post services", sub:"Pick a service, copy it or download it as Word, then post it", rulesT:"✅ Quality acceptance rules",
       rules:["Accepted platforms: Khamsat – Kafiil – Nafezly (Mostaql is not accepted)","Starting price between $3 and $7 (all services here are $5)","Platform account name = your name registered in the scholarship","Service is published, active, and its link opens publicly","Each service is a different idea (no duplicates)"],
-      tip:"💡 Pick services you can actually deliver, reword them a little in your own style, and add gallery images of your work; text pasted as-is may be rejected in review. Service texts are in Arabic since the accepted platforms are Arabic.",
+      tip:"💡 Pick services you can actually deliver, press «🔄 Reword» so your title differs from classmates', and adjust the description in your own style; text pasted as-is may be rejected in review. Service texts are in Arabic since the accepted platforms are Arabic.",
       open:"Open", nameL:"Your name as registered in the scholarship (optional, printed in the Word file as a reminder):", nameP:"e.g. Mohamed Ahmed Ali",
       search:"Search services (design, Excel, translation...)", all:"All", count:(a,b)=>`${a} selected · ${b} shown`,
       dlSel:"⬇️ Download selected (Word)", dlAll:"⬇️ Download all (Word)", clear:"Clear selection", copy:"📋 Copy", word:"⬇️ Word",
@@ -1424,9 +1543,10 @@ function SU(){ return SVC_UI[lang]; }
 function arDays(d){ return d===1 ? "يوم واحد" : d===2 ? "يومان" : `${d} أيام`; }
 const SVC_CLOSE = "أضمن لك التعديل حتى رضاك في حدود ما تتضمنه الخدمة، ويسعدني الرد على أي استفسار قبل الطلب.";
 
-function svcText(s){
+function svcText(i){
+  const s = SERVICES[i];
   return [
-    "عنوان الخدمة:", s.t, "",
+    "عنوان الخدمة:", svcTitle(i), "",
     "وصف الخدمة:", s.d, "", "ستحصل في هذه الخدمة على:", ...s.g.map(x=>"- "+x), "", SVC_CLOSE, "",
     "سعر الخدمة: " + SVC_PRICE + "$",
     "مدة التسليم: " + arDays(s.days), "",
@@ -1456,9 +1576,9 @@ function svcDoc(list, fname){
   const name = (document.getElementById("svcName").value || "").trim();
   const sec = list.map(i=>{
     const s = SERVICES[i];
-    return `<h2>خدمة رقم ${i+1}: ${esc(s.t)}</h2>
+    return `<h2>خدمة رقم ${i+1}: ${esc(svcTitle(i))}</h2>
 <p class="cat">القسم: ${esc(SVC_CATS[s.c].ar.replace(/^\S+\s/,""))} &nbsp;|&nbsp; السعر: ${SVC_PRICE}$ &nbsp;|&nbsp; مدة التسليم: ${arDays(s.days)}</p>
-<h3>عنوان الخدمة</h3><p>${esc(s.t)}</p>
+<h3>عنوان الخدمة</h3><p>${esc(svcTitle(i))}</p>
 <h3>وصف الخدمة</h3><p>${esc(s.d)}</p><p>ستحصل في هذه الخدمة على:</p><ul>${s.g.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p>${SVC_CLOSE}</p>
 <h3>تعليمات للمشتري</h3><p>${esc(s.r)}</p>
 <h3>تطويرات مقترحة</h3><ul>${SVC_CATS[s.c].up.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
@@ -1497,7 +1617,7 @@ function svcFiltered(){
   return SERVICES.map((s,i)=>i).filter(i=>{
     const s = SERVICES[i];
     if (svcCat!=="all" && s.c!==svcCat) return false;
-    return !q || (s.t+" "+s.d+" "+s.k).toLowerCase().includes(q) || String(i+1)===q;
+    return !q || (svcTitles(i).join(" ")+" "+s.d+" "+s.k).toLowerCase().includes(q) || String(i+1)===q;
   });
 }
 function svcCount(shown){
@@ -1513,14 +1633,21 @@ function svcRender(){
     el.className = "svc-card" + (svcSel[i+1] ? " sel" : "");
     el.innerHTML = `
       <div class="badges"><span class="badge new">#${i+1}</span><span class="badge">${esc(SVC_CATS[s.c][lang])}</span><span class="badge lvl">${SVC_PRICE}$</span><span class="badge lvl">⏱️ ${u.day(s.days)}</span></div>
-      <h4 dir="rtl">${esc(s.t)}</h4>
+      <h4 dir="rtl">${esc(svcTitle(i))}</h4>
+      <button class="svc-rw" type="button" data-rw>${SVC_UI2[lang].reword} <span>${SVC_UI2[lang].of((svcVar[i]||0)%svcTitles(i).length+1, svcTitles(i).length)}</span></button>
       <p dir="rtl">${esc(s.d)}</p>
       <details dir="rtl"><summary>${u.details}</summary>
         <b>ستحصل على:</b><ul>${s.g.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
         <b>تعليمات للمشتري:</b> ${esc(s.r)}<br><b>الكلمات المفتاحية:</b> ${esc(s.k)}</details>
-      <div class="actions"><button class="btn primary" type="button" data-copy>${u.copy}</button><button class="btn ghost" type="button" data-word>${u.word}</button></div>
+      <div class="actions"><button class="btn primary" type="button" data-copy>${u.copy}</button><button class="btn ghost" type="button" data-img>${SVC_UI2[lang].img}</button><button class="btn ghost" type="button" data-word>${u.word}</button></div>
       <label class="check"><input type="checkbox" ${svcSel[i+1]?"checked":""}> ${u.pick}</label>`;
-    el.querySelector("[data-copy]").onclick = ()=>svcCopy(svcText(s));
+    el.querySelector("[data-copy]").onclick = ()=>svcCopy(svcText(i));
+    el.querySelector("[data-img]").onclick = ()=>openSvcImage(i);
+    el.querySelector("[data-rw]").onclick = ()=>{
+      svcNextTitle(i);
+      el.querySelector("h4").textContent = svcTitle(i);
+      el.querySelector("[data-rw] span").textContent = SVC_UI2[lang].of(svcVar[i]%svcTitles(i).length+1, svcTitles(i).length);
+    };
     el.querySelector("[data-word]").onclick = ()=>svcDoc([i], `خدمة-${i+1}.doc`);
     el.querySelector("input").onchange = e=>{
       if (e.target.checked) svcSel[i+1]=1; else delete svcSel[i+1];
@@ -1552,6 +1679,7 @@ function svcLabels(){
   document.getElementById("svcTip").textContent = u.tip;
   document.getElementById("svcPlat").innerHTML = SVC_PLAT.map(p=>
     `<a class="btn ghost" href="${p[2]}" target="_blank" rel="noopener">🌐 ${u.open} ${lang==="ar"?p[0]:p[1]}</a>`).join("");
+  document.getElementById("svcGuideBtn").textContent = SVC_UI2[lang].guide;
   document.getElementById("svcNameL").textContent = u.nameL;
   document.getElementById("svcName").placeholder = u.nameP;
   document.getElementById("svcQ").placeholder = u.search;
@@ -1575,7 +1703,7 @@ function closeSvc(){
 document.getElementById("svcBtn").onclick = openSvc;
 document.getElementById("svcClose").onclick = closeSvc;
 svcModal.addEventListener("click", e=>{ if (e.target === svcModal) closeSvc(); });
-document.addEventListener("keydown", e=>{ if (e.key === "Escape" && svcModal.classList.contains("open") && !modal.classList.contains("open")) closeSvc(); });
+window.addEventListener("keydown", e=>{ if (e.key === "Escape" && svcModal.classList.contains("open") && !modal.classList.contains("open")) closeSvc(); }, true);
 document.getElementById("svcQ").addEventListener("input", svcRender);
 document.getElementById("svcName").value = store.get("fy-svc-name") || "";
 document.getElementById("svcName").addEventListener("input", e=>store.set("fy-svc-name", e.target.value));
@@ -1586,6 +1714,183 @@ document.getElementById("svcDlSel").onclick = ()=>{
 };
 document.getElementById("svcDlAll").onclick = ()=>svcDoc(SERVICES.map((s,i)=>i), "100-خدمة-جاهزة.doc");
 document.getElementById("svcClear").onclick = ()=>{ svcSel = {}; store.set(SVC_KEY, "{}"); svcRender(); };
+
+// ===== صياغة تانية للعنوان =====
+const SVC_VAR_KEY = "fy-svc-var", SVC_THEME_KEY = "fy-svc-theme";
+let svcVar = {}, svcTheme = {};
+try { svcVar = JSON.parse(store.get(SVC_VAR_KEY) || "{}") || {}; } catch(e){}
+try { svcTheme = JSON.parse(store.get(SVC_THEME_KEY) || "{}") || {}; } catch(e){}
+// أول مرة: كل طالب بياخد عنوان ولون عشوائي لكل خدمة، فالطلبة مش بيبدأوا كلهم بنفس العنوان
+SERVICES.forEach((s,i)=>{
+  if (svcVar[i] == null) svcVar[i] = Math.floor(Math.random()*4);
+  if (svcTheme[i] == null) svcTheme[i] = Math.floor(Math.random()*SVC_THEMES_N());
+});
+store.set(SVC_VAR_KEY, JSON.stringify(svcVar)); store.set(SVC_THEME_KEY, JSON.stringify(svcTheme));
+function SVC_THEMES_N(){ return 6; }
+function svcTitles(i){ return [SERVICES[i].t, ...(SVC_ALT[i]||[])]; }
+function svcTitle(i){ const a = svcTitles(i); return a[(svcVar[i]||0) % a.length]; }
+function svcNextTitle(i){
+  svcVar[i] = ((svcVar[i]||0) + 1) % svcTitles(i).length;
+  store.set(SVC_VAR_KEY, JSON.stringify(svcVar));
+}
+
+// ===== صورة الخدمة (Canvas) =====
+const SVC_THEMES = [
+  ["#f26b0f","#ffb347"], ["#1e3a8a","#3b82f6"], ["#065f46","#10b981"],
+  ["#5b21b6","#a855f7"], ["#9f1239","#fb7185"], ["#0f172a","#0e7490"]
+];
+const SVC_ICON = {write:"✍️", design:"🎨", video:"🎬", dev:"💻", data:"📊", ai:"🤖", mkt:"📣", biz:"🗂️"};
+function svcWrap(ctx, text, maxW){
+  const words = text.split(/\s+/), lines = []; let line = "";
+  words.forEach(w=>{
+    const t = line ? line + " " + w : w;
+    if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t;
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+function svcRound(ctx, x, y, w, h, r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+async function svcDraw(i){
+  const s = SERVICES[i], W = 1600, H = 940, P = 90;
+  const [c1, c2] = SVC_THEMES[(svcTheme[i]||0) % SVC_THEMES.length];
+  try { await document.fonts.load('800 80px Cairo', 'خدمة'); await document.fonts.load('600 40px Cairo', 'خدمة'); } catch(e){}
+  const F = '"Cairo", "Segoe UI", Tahoma, Arial, sans-serif';
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  // خلفية
+  const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "rgba(255,255,255,.08)";
+  ctx.beginPath(); ctx.arc(140, 160, 260, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(W-60, H+40, 330, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(300, H-80, 90, 0, Math.PI*2); ctx.fill();
+  // أيقونة القسم
+  ctx.fillStyle = "rgba(255,255,255,.95)"; ctx.beginPath(); ctx.arc(250, 470, 150, 0, Math.PI*2); ctx.fill();
+  ctx.font = `150px ${F}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.direction = "ltr";
+  ctx.fillText(SVC_ICON[s.c] || "⭐", 250, 480);
+  ctx.direction = "rtl"; ctx.textAlign = "right"; ctx.textBaseline = "alphabetic";
+  const X = W - P, maxW = W - P - 470;
+  // اسم القسم
+  ctx.font = `700 34px ${F}`;
+  const cat = SVC_CATS[s.c].ar.replace(/^\S+\s/, "");
+  const cw = ctx.measureText(cat).width + 56;
+  ctx.fillStyle = "rgba(255,255,255,.22)"; svcRound(ctx, X - cw, P, cw, 64, 32); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.fillText(cat, X - 28, P + 44);
+  // العنوان (بيصغر لحد ما يدخل في 3 سطور)
+  let size = 86, lines;
+  do { ctx.font = `800 ${size}px ${F}`; lines = svcWrap(ctx, svcTitle(i), maxW); size -= 4; } while ((lines.length > 3 || (lines.length + 1) * (size + 4) * 1.55 > 478) && size > 46);
+  const lh = size * 1.55; let y = P + 64 + 40 + lh;
+  ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(0,0,0,.18)"; ctx.shadowBlur = 12;
+  lines.slice(0, 4).forEach(l=>{ ctx.fillText(l, X, y); y += lh; });
+  ctx.shadowBlur = 0;
+  // هتستلم إيه
+  y += 10; ctx.font = `600 36px ${F}`;
+  s.g.forEach(t=>{
+    if (y > H - 130) return;
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(X - 20, y - 12, 20, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = c1; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(X - 29, y - 12); ctx.lineTo(X - 22, y - 4); ctx.lineTo(X - 10, y - 20); ctx.stroke();
+    ctx.fillStyle = "rgba(255,255,255,.95)";
+    const one = svcWrap(ctx, t, maxW - 60)[0];
+    ctx.fillText(one, X - 56, y); y += 64;
+  });
+  // الشريط السفلي: التسليم + اسم الطالب (من غير سعر أو وسيلة تواصل)
+  ctx.fillStyle = "rgba(0,0,0,.18)"; ctx.fillRect(0, H - 96, W, 96);
+  ctx.fillStyle = "#fff"; ctx.font = `700 34px ${F}`;
+  ctx.fillText("⏱ التسليم خلال " + (s.days===2 ? "يومين" : arDays(s.days)), X, H - 36);
+  const name = (document.getElementById("svcName").value || "").trim();
+  if (name){ ctx.textAlign = "left"; ctx.fillText("تنفيذ: " + name, P, H - 36); }
+  return cv;
+}
+function svcShowModal(){
+  modal.classList.add("open"); document.body.style.overflow = "hidden";
+  document.getElementById("mClose").focus();
+}
+async function openSvcImage(i){
+  openSite = null; lastFocus = document.activeElement;
+  const u = SVC_UI2[lang];
+  document.getElementById("mLogo").innerHTML = "<b>🖼️</b>";
+  document.getElementById("mTitle").innerHTML = `<small>${esc(u.imgSub(i+1))}</small>${esc(svcTitle(i))}`;
+  document.getElementById("mSteps").innerHTML = "";
+  const cv = await svcDraw(i);
+  const ex = document.getElementById("mExtra"); ex.innerHTML = "";
+  const img = new Image(); img.src = cv.toDataURL("image/png"); img.alt = svcTitle(i); img.className = "svc-prev";
+  ex.appendChild(img);
+  document.getElementById("mNote").textContent = u.imgNote;
+  const act = document.getElementById("mActions"); act.innerHTML = "";
+  const mk = (cls, label, fn)=>{ const b = document.createElement("button"); b.type = "button"; b.className = "btn " + cls; b.textContent = label; b.onclick = fn; act.appendChild(b); return b; };
+  mk("primary", u.dlPng, ()=>{
+    cv.toBlob(b=>{
+      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = `صورة-خدمة-${i+1}.png`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+      svcToast(SU().saved);
+    }, "image/png");
+  });
+  mk("ghost", u.color, ()=>{ svcTheme[i] = ((svcTheme[i]||0)+1) % SVC_THEMES.length; store.set(SVC_THEME_KEY, JSON.stringify(svcTheme)); openSvcImage(i); });
+  mk("ghost", u.reword, ()=>{ svcNextTitle(i); svcRender(); openSvcImage(i); });
+  if (!modal.classList.contains("open")) svcShowModal();
+}
+
+// ===== دليل النشر على خمسات =====
+const KH_GUIDE = {
+  ar:{sub:"دليل خطوة بخطوة", title:"إزاي تنشر خدمة على خمسات", steps:[
+      "ادخل خمسات بحساب اسمه هو نفس اسمك المسجل في المنحة",
+      "اختار خدمة من هنا تكون فعلًا تعرف تنفذها، ودوس «🔄 صياغة تانية» لحد ما يعجبك العنوان، وبعدين «📋 نسخ»",
+      "في خمسات اضغط «أضف خدمة»، والصق العنوان، واختار القسم والقسم الفرعي المناسبين",
+      "الصق الوصف وظبطه بأسلوبك، وحط السعر 5$ ومدة التسليم",
+      "دوس «🖼️ صورة» هنا ونزّل الصورة، وارفعها صورة رئيسية للخدمة. ولو عندك نماذج من شغلك ضيفها في المعرض",
+      "اكتب تعليمات المشتري والكلمات المفتاحية، وضيف التطويرات لو حابب",
+      "ابعت الخدمة للمراجعة. لو اترفضت، السبب هيوصلك على الإيميل؛ عدّل وابعتها تاني",
+      "بعد القبول افتح لينك الخدمة من متصفح تاني من غير تسجيل دخول واتأكد إنه بيفتح لأي حد، وبعدين ابعته للكوردينيتور"],
+    h:"❌ أشهر أسباب رفض الخدمة", why:[
+      "عنوان عام من غير حجم شغل واضح، زي «تصميم أي حاجة». العنوان لازم يقول هتسلّم إيه بالظبط",
+      "وصف قصير مايوضحش المشتري هياخد إيه مقابل السعر",
+      "صورة منقولة من جوجل أو شغل حد تاني",
+      "رقم موبايل أو إيميل أو أي وسيلة تواصل برا المنصة في الوصف أو الصورة",
+      "مدة تسليم مش منطقية، أو أخطاء إملائية كتير",
+      "خدمة ممنوعة في شروط خمسات، زي زيادة المتابعين أو حل الواجبات"],
+    note:"💡 خمسات بتاخد عمولة 1$ من كل 5$، يعني هيوصلك 4$ من الخدمة. وماتتفقش مع أي عميل برا المنصة عشان حسابك مايتقفلش.", open:"🌐 افتح خمسات"},
+  en:{sub:"Step-by-step guide", title:"How to post a service on Khamsat", steps:[
+      "Log in to Khamsat with an account named exactly as your scholarship registration",
+      "Pick a service you can actually deliver, press «🔄 Reword» until you like the title, then «📋 Copy»",
+      "On Khamsat click «Add service», paste the title, and choose the right category and subcategory",
+      "Paste the description, adjust it in your own style, set the price to $5 and the delivery time",
+      "Press «🖼️ Image» here, download it and upload it as the main service image. Add samples of your own work to the gallery if you have any",
+      "Fill in buyer instructions and keywords, and add upgrades if you like",
+      "Submit for review. If it's rejected, the reason arrives by email; fix it and resubmit",
+      "Once approved, open the service link in another browser while logged out to check it's public, then send it to the coordinator"],
+    h:"❌ Most common rejection reasons", why:[
+      "A vague title with no clear scope, like «design anything». The title must say exactly what you deliver",
+      "A short description that doesn't explain what the buyer gets for the price",
+      "An image copied from Google or someone else's work",
+      "A phone number, email or any off-platform contact in the description or image",
+      "An unrealistic delivery time, or many spelling mistakes",
+      "A service banned by Khamsat's terms, like selling followers or doing homework"],
+    note:"💡 Khamsat takes a $1 fee from every $5, so you receive $4 per service. Never deal with a client off-platform or your account may be closed.", open:"🌐 Open Khamsat"}
+};
+function openKhGuide(){
+  openSite = null; lastFocus = document.activeElement;
+  const g = KH_GUIDE[lang];
+  document.getElementById("mLogo").innerHTML = `<img src="https://www.google.com/s2/favicons?domain=khamsat.com&sz=128" alt="">`;
+  document.querySelector("#mLogo img").onerror = function(){ document.getElementById("mLogo").innerHTML = "<b>خ</b>"; };
+  document.getElementById("mTitle").innerHTML = `<small>${esc(g.sub)}</small>${esc(g.title)}`;
+  document.getElementById("mSteps").innerHTML = g.steps.map(x=>`<li>${esc(x)}</li>`).join("");
+  document.getElementById("mExtra").innerHTML = `<h4>${esc(g.h)}</h4><ul>${g.why.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
+  document.getElementById("mNote").textContent = g.note;
+  document.getElementById("mActions").innerHTML = `<a class="btn primary" href="https://khamsat.com/" target="_blank" rel="noopener">${esc(g.open)}</a>`;
+  svcShowModal();
+}
+const SVC_UI2 = {
+  ar:{reword:"🔄 صياغة تانية", img:"🖼️ صورة", guide:"📘 إزاي تنشر خدمة على خمسات", imgSub:n=>`صورة الخدمة رقم ${n}`, dlPng:"⬇️ تحميل الصورة PNG", color:"🎨 لون تاني",
+      imgNote:"📐 المقاس 1600×940، بنفس نسبة 800×470 اللي خمسات بتطلبها كحد أدنى. الصورة مافيهاش سعر ولا وسيلة تواصل عشان ماتترفضش. لو كتبت اسمك في خانة الاسم، هيظهر تحت في الصورة.", of:(a,b)=>`${a}/${b}`},
+  en:{reword:"🔄 Reword", img:"🖼️ Image", guide:"📘 How to post on Khamsat", imgSub:n=>`Image for service #${n}`, dlPng:"⬇️ Download PNG", color:"🎨 Another color",
+      imgNote:"📐 1600×940, the same ratio as Khamsat's 800×470 minimum. No price or contact info on the image so it isn't rejected. If you type your name in the name box, it appears at the bottom.", of:(a,b)=>`${a}/${b}`}
+};
+
+document.getElementById("svcGuideBtn").onclick = openKhGuide;
 
 applyLang();
 </script>
