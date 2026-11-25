@@ -70,7 +70,7 @@ section p.cat-desc{margin:0 0 14px;color:var(--muted)}
 .body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1}
 .head{display:flex;align-items:center;gap:12px;min-width:0}
 .logo{width:54px;height:54px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;flex:none}
-.logo img{width:38px;height:38px}
+.logo img{width:38px;height:38px;object-fit:contain}
 .logo b{font-size:22px;color:var(--brand)}
 .head h3{margin:0;font-size:19px;line-height:1.3;overflow-wrap:anywhere}
 .head small{color:var(--muted);direction:ltr;display:block;unicode-bidi:isolate}
@@ -416,6 +416,10 @@ const SITES = [
    t:["منصة كوتشينج وتدريب أونلاين (I Can Coach You)","مناسبة لو عندك مهارة تقدر تدرّبها لغيرك","جهز وصف واضح لجلساتك والنتيجة اللي العميل هيوصلها"]},
   {n:"Excelchat", d:"got-it.ai", u:"https://www.got-it.ai/solutions/excel-chat", c:"teach", lvl:"متوسط", nw:1,
    t:["بتساعد الناس في حل مشاكل Excel بالشات","محتاج مستوى قوي في Excel والمعادلات","اتأكد إن التسجيل كخبير متاح قبل ما تعتمد عليها"]},
+  {n:"فهيم (Faheem)", d:"faheemapp.com", u:"https://www.faheemapp.com/", c:"teach", lvl:"متوسط", nw:1,
+   t:["منصة سعودية للدروس الخصوصية أونلاين من الروضة وحتى الجامعة","بتقدم نفسها بنخبة من المعلمين، فجهز مؤهلاتك وخبرتك قبل ما تقدم","السوق الأساسي سعودي؛ راجع شروط الانضمام كمعلم والمراحل المطلوبة"]},
+  {n:"يوستدي (Ustudy)", d:"ustudy24.com", u:"https://ustudy24.com/", c:"teach", lvl:"متوسط", nw:1,
+   t:["منصة سعودية لطلاب الجامعة بحصص مباشرة أو مسجلة من أكاديميين، وليها تطبيق موبايل","مناسبة لو عندك تخصص جامعي تقدر تشرحه بوضوح","اتأكد من الموقع إن انضمام المدرسين مفتوح وشروطه قبل ما تعتمد عليها"]},
 
   {n:"SproutGigs", d:"sproutgigs.com", u:"https://sproutgigs.com/", c:"micro", lvl:"مبتدئ",
    t:["مهام صغيرة جدًا بمبالغ قليلة","مناسبة للتجربة بس مش مصدر دخل أساسي","تجنب أي مهمة تطلب بيانات حساسة"]},
@@ -423,6 +427,10 @@ const SITES = [
    t:["مهام صغيرة من تطبيق الموبايل (تصوير، تأكيد بيانات أماكن)","المهام بتعتمد على مكانك والمتاح في مدينتك","مناسبة كدخل إضافي بسيط"]},
   {n:"Mellow", d:"mellow.io", u:"https://mellow.io/", g:"https://help.mellow.io", gl:"الدليل", c:"micro", lvl:"مبتدئ",
    t:["مش منصة لإيجاد شغل؛ دي لاستلام المدفوعات والعقود مع العملاء","مفيدة لما تشتغل مع شركات برا","راجع الرسوم وطرق السحب المتاحة في مصر"]},
+  {n:"Prolific", d:"prolific.com", u:"https://www.prolific.com/", c:"micro", lvl:"مبتدئ", nw:1,
+   t:["بتوصل باحثين وشركات AI بمشاركين حقيقيين، وبتاخد مقابل على الدراسات والاستبيانات","سجل ببياناتك الحقيقية؛ الدراسات اللي بتظهرلك بتتحدد حسب بروفايلك","جاوب بتركيز وصدق، والإجابات العشوائية ممكن تتسبب في رفض الدراسة"]},
+  {n:"Forlanso", d:"forlanso.com", u:"https://www.forlanso.com/en", c:"micro", lvl:"مبتدئ", nw:1,
+   t:["منصة إماراتية لإدارة الشغل عن بعد: عقود رقمية وإدارة موظفين ومدفوعات عبر الحدود في +150 دولة","بتقدم نفسها بدون عمولة وفيها خطة مجانية؛ راجع الرسوم وطرق السحب المتاحة في مصر","غالبًا هي أداة للعقود والمدفوعات مع العملاء والشركات، مش سوق بتدور فيه على شغل"]},
   {n:"Kuro", d:"trykuro.app", u:"https://trykuro.app/", c:"micro", lvl:"مبتدئ", nw:1,
    t:["تطبيق للكمبيوتر بس بيدفعلك مقابل تسجيل نشاطك العادي على الجهاز","العائد بسيط ومحتاج ساعات تشغيل كتير يوميًا","⚠️ التطبيق بيسجل شاشتك؛ اقفله وانت بتفتح حسابات بنكية أو باسوردات أو بيانات خاصة"]}
 ];
@@ -512,10 +520,14 @@ const EN = {
   "teacherprivate.com":{n:"TeacherPrivate",t:["Arabic platform for online private lessons","Specify the subjects and grades you teach","Write about your experience and teaching style"]},
   "icancoachyou.online":{n:"ICCY",t:["Online coaching and training platform (I Can Coach You)","Good if you have a skill you can coach others in","Describe your sessions and the result clients will get"]},
   "got-it.ai":{n:"Excelchat",t:["Help people solve Excel problems over chat","Requires strong Excel and formula skills","Confirm expert signup is open before relying on it"]},
+  "faheemapp.com":{n:"Faheem",t:["Saudi platform for online private lessons from kindergarten to university","Presents itself with an elite group of tutors, so prepare your qualifications and experience","Mainly a Saudi market; check the tutor requirements and grade levels needed"]},
+  "ustudy24.com":{n:"Ustudy",t:["Saudi platform for university students with live or recorded sessions from academics, plus a mobile app","Good if you have a university specialty you can explain clearly","Confirm on the site that tutor signup is open and its requirements before relying on it"]},
 
   "sproutgigs.com":{n:"SproutGigs",t:["Very small tasks for small amounts","Fine to try, not a main income","Avoid any task asking for sensitive data"]},
   "appjobber.com":{n:"AppJobber",t:["Small tasks via mobile app (photos, verifying place info)","Tasks depend on your location and city","Good for a small side income"]},
   "mellow.io":{n:"Mellow",gl:"Guide",t:["Not a job platform; it's for receiving payments and contracts with clients","Useful when working with companies abroad","Check fees and withdrawal options in your country"]},
+  "prolific.com":{n:"Prolific",t:["Connects researchers and AI companies with real participants; you get paid for studies and surveys","Sign up with your real details; the studies you see depend on your profile","Answer attentively and honestly; random answers can get a study rejected"]},
+  "forlanso.com":{n:"Forlanso",t:["UAE-based remote work platform: digital contracts, employee management and cross-border payments in 150+ countries","Presents itself as zero commission with a free plan; check the fees and withdrawal options in Egypt","Most likely a tool for contracts and payments with clients and companies, not a marketplace to find work"]},
   "trykuro.app":{n:"Kuro",t:["PC-only app that pays you for recording your normal computer activity","Small return and needs many hours of runtime daily","⚠️ It records your screen; close it when opening bank accounts, passwords or private data"]}
 };
 
@@ -733,6 +745,14 @@ const GUIDE = {
                  en:["Download the AppJobber app and sign up","Enable location","Pick a nearby task and complete it"]},
   "mellow.io":{ar:["سجل كـ Freelancer/Contractor","وثّق هويتك","ضيف طريقة السحب وابعت اللينك للعميل أو الشركة"],
                  en:["Sign up as a Freelancer/Contractor","Verify your identity","Add a withdrawal method and share with your client"]},
+  "faheemapp.com":{ar:["دور في الموقع على خيار الانضمام كمعلم","كمّل بياناتك ومؤهلاتك والمواد والمراحل اللي بتدرّسها","استنى مراجعة الطلب، وجهز نفسك لأي تقييم أو مقابلة"],
+                 en:["Look on the site for the option to join as a tutor","Fill in your details, qualifications, subjects and grade levels","Wait for your application to be reviewed and prepare for any assessment or interview"]},
+  "ustudy24.com":{ar:["افتح الموقع أو حمّل تطبيق Ustudy وابحث عن خيار الانضمام كمدرس","كمّل بياناتك وتخصصك الجامعي وخبرتك","استنى المراجعة، وبعدها جهز حصصك المباشرة أو المسجلة"],
+                 en:["Open the site or download the Ustudy app and look for the option to join as a tutor","Fill in your details, university specialty and experience","Wait for review, then prepare your live or recorded sessions"]},
+  "prolific.com":{ar:["اعمل حساب كمشارك (Participant) بإيميلك","كمّل أسئلة البروفايل بصدق، لأنها بتحدد الدراسات اللي هتظهرلك","ابدأ بالدراسات المتاحة وجاوب بتركيز"],
+                 en:["Create a participant account with your email","Answer the profile questions honestly; they decide which studies you see","Start with the available studies and answer attentively"]},
+  "forlanso.com":{ar:["سجل حساب جديد من الموقع","كمّل بياناتك وتحقق من الهوية لو طُلب منك","ابدأ بالعقود وإعدادات الدفع وراجع الرسوم وطرق السحب"],
+                 en:["Create an account from the website","Complete your details and verify your identity if asked","Set up contracts and payment settings and review the fees and withdrawal options"]},
   "trykuro.app":{ar:["حمّل تطبيق Kuro على الكمبيوتر (مش متاح للموبايل)","سجل حساب وابدأ التسجيل","استخدم جهازك عادي، واقفل التطبيق وقت أي بيانات حساسة"],
                  en:["Download the Kuro app on your PC (not for mobile)","Create an account and start recording","Use your PC normally; pause it during anything sensitive"]}
 };
@@ -786,17 +806,43 @@ function buildTabs(){
   });
 }
 
+// لوجو الموقع: بنجرب أكتر من مصدر، والحرف آخر حل
+function setLogo(box, domain, name){
+  const srcs = [
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+    `https://${domain}/apple-touch-icon.png`,
+    `https://www.${domain}/apple-touch-icon.png`,
+    `https://${domain}/favicon.ico`,
+    `https://www.${domain}/favicon.ico`
+  ];
+  let i = 0, small = null;
+  box.innerHTML = "";
+  const img = document.createElement("img"); img.alt = ""; img.referrerPolicy = "no-referrer";
+  box.appendChild(img);
+  function fail(){ box.innerHTML = `<b>${esc((name||domain)[0])}</b>`; }
+  function next(){
+    if (i < srcs.length){ img.src = srcs[i++]; }
+    else if (small){ img.onload = null; img.onerror = fail; img.src = small; small = null; }
+    else fail();
+  }
+  img.onload = function(){
+    if (this.naturalWidth && this.naturalWidth < 20){ if (!small) small = this.src; next(); }
+  };
+  img.onerror = next;
+  next();
+}
+
 function card(s){
   const id = s.d, u = L();
   const el = document.createElement("article");
   el.className = "card" + (done[id] ? " done" : "");
   const name = siteName(s);
-  const logo = `https://www.google.com/s2/favicons?domain=${s.d}&sz=128`;
   const guide = `<button class="btn ghost" type="button" data-guide>📘 ${u.guide}</button>`;
   el.innerHTML = `
     <div class="body">
       <div class="head">
-        <div class="logo"><img src="${logo}" alt="" loading="lazy"></div>
+        <div class="logo"></div>
         <div style="min-width:0"><h3>${esc(name)}</h3><small>${s.d}</small></div>
       </div>
       <div class="badges"><span class="badge">${esc(cat(s.c).name)}</span><span class="badge lvl">${u.level}: ${u.lv[s.lvl]}</span>${s.nw?`<span class="badge new">${u.neu}</span>`:""}</div>
@@ -808,7 +854,7 @@ function card(s){
       </div>
       <label class="check"><input type="checkbox" ${done[id]?"checked":""}> ${u.done}</label>
     </div>`;
-  el.querySelector(".logo img").onerror = function(){ this.parentNode.innerHTML = `<b>${esc(name[0])}</b>`; };
+  setLogo(el.querySelector(".logo"), s.d, name);
   el.querySelector("[data-guide]").onclick = ()=>openGuide(s);
   if (WORK[s.d]) el.querySelector("[data-work]").onclick = ()=>openWork(s);
   el.querySelector("input").onchange = e=>{
@@ -922,8 +968,7 @@ function openWork(s){
   const c = w[lang], name = siteName(s);
   document.getElementById("mTitle").innerHTML = `<small>${esc(c.title)}</small>${esc(name)}`;
   const lg = document.getElementById("mLogo");
-  lg.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${s.d}&sz=128" alt="">`;
-  lg.querySelector("img").onerror = function(){ lg.innerHTML = `<b>${esc(name[0])}</b>`; };
+  setLogo(lg, s.d, name);
   document.getElementById("mSteps").innerHTML = c.steps.map(x=>`<li>${esc(x)}</li>`).join("");
   document.getElementById("mExtra").innerHTML =
     `<h4>${esc(c.h1)}</h4><dl>${c.terms.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join("")}</dl>` +
@@ -948,8 +993,7 @@ function openGuide(s){
   }
   document.getElementById("mTitle").innerHTML = `<small>${u.guideTitle}</small>${esc(name)}`;
   const lg = document.getElementById("mLogo");
-  lg.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${s.d}&sz=128" alt="">`;
-  lg.querySelector("img").onerror = function(){ lg.innerHTML = `<b>${esc(name[0])}</b>`; };
+  setLogo(lg, s.d, name);
   document.getElementById("mSteps").innerHTML = steps.map(x=>`<li>${esc(x)}</li>`).join("");
   document.getElementById("mNote").textContent = u.note;
   const gl = lang==="en" ? (EN[s.d]?.gl || s.gl) : s.gl;
@@ -1874,8 +1918,7 @@ const KH_GUIDE = {
 function openKhGuide(){
   openSite = null; lastFocus = document.activeElement;
   const g = KH_GUIDE[lang];
-  document.getElementById("mLogo").innerHTML = `<img src="https://www.google.com/s2/favicons?domain=khamsat.com&sz=128" alt="">`;
-  document.querySelector("#mLogo img").onerror = function(){ document.getElementById("mLogo").innerHTML = "<b>خ</b>"; };
+  setLogo(document.getElementById("mLogo"), "khamsat.com", "خ");
   document.getElementById("mTitle").innerHTML = `<small>${esc(g.sub)}</small>${esc(g.title)}`;
   document.getElementById("mSteps").innerHTML = g.steps.map(x=>`<li>${esc(x)}</li>`).join("");
   document.getElementById("mExtra").innerHTML = `<h4>${esc(g.h)}</h4><ul>${g.why.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
